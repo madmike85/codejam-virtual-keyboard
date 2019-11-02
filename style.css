@@ -1,0 +1,70 @@
+body {
+  margin: 0 auto;
+}
+
+.text-field {
+  display: block;
+  margin: 0 auto;
+  margin-bottom: 10px;
+}
+
+.keyboard {
+  max-width: 754px;
+  margin: 0 auto;
+}
+
+.keyboard__row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 5px;
+}
+
+.key {
+  outline: none;
+  border: 1px solid black;
+  width: 46px;
+  height: 46px;
+  border-radius: 6px;
+  background: none;
+  transition: all 0.2s;
+}
+
+.key:hover {
+  background: slateblue;
+}
+
+.key:active {
+  transform: scale(1.1);
+}
+
+.long {
+  width: 240px;
+}
+
+.double {
+  width: 92px;
+}
+
+.backspace {
+  width: 100px;
+}
+
+.ctrl {
+  width: 60px;
+}
+
+.tab {
+  width: 50px;
+}
+
+.dark {
+  background: rgba(0, 0, 0, 0.5);
+}
+
+.fa-level-down-alt {
+  transform: rotate(90deg);
+}
+
+.highlighted {
+  background: slateblue;
+}
