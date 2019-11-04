@@ -1,3 +1,5 @@
+const textarea = document.querySelector('.text-field');
+
 const switchKey = {
   ShiftLeft: false,
   ControlLeft: false
@@ -85,21 +87,15 @@ const keyboard = {
     keys: []
   },
 
-  eventHandlers: {
-    oninput: null
-  },
-
   properties: {
     value: '',
     capslock: false,
     shift: false,
-    isRus: false
+    isRus: localStorage.getItem('isRus')
   },
 
   initilize(oninput) {
-    this.properties.isRus = localStorage.getItem('isRus');
     localStorage.setItem('isRus', this.properties.isRus);
-    this.eventHandlers.oninput = oninput;
     this.elements.main = document.createElement('div');
     this.elements.main.classList.add('keyboard');
     this.elements.main.appendChild(this.createKeys());
@@ -131,7 +127,6 @@ const keyboard = {
                 this.properties.shift = false;
                 this.toggleShift();
               }
-              this.triggerEvent('oninput');
             });
             break;
 
@@ -157,12 +152,11 @@ const keyboard = {
             keyElement.classList.add('double', 'dark');
             keyElement.innerHTML = '<i class="fas fa-level-down-alt"></i>';
             keyElement.addEventListener('click', () => {
-              this.properties.value += '\n';
+              textarea.value += '\n';
               if (this.properties.shift) {
                 this.properties.shift = false;
                 this.toggleShift();
               }
-              this.triggerEvent('oninput');
             });
             break;
 
@@ -170,12 +164,11 @@ const keyboard = {
             keyElement.classList.add('tab', 'dark');
             keyElement.innerHTML = '<span>TAB</span>';
             keyElement.addEventListener('click', () => {
-              this.properties.value += '   ';
+              textarea.value += '   ';
               if (this.properties.shift) {
                 this.properties.shift = false;
                 this.toggleShift();
               }
-              this.triggerEvent('oninput');
             });
             break;
 
@@ -206,12 +199,11 @@ const keyboard = {
           case 'Space':
             keyElement.classList.add('long');
             keyElement.addEventListener('click', () => {
-              this.properties.value += ' ';
+              textarea.value += ' ';
               if (this.properties.shift) {
                 this.properties.shift = false;
                 this.toggleShift();
               }
-              this.triggerEvent('oninput');
             });
             break;
 
@@ -256,7 +248,6 @@ const keyboard = {
                 this.properties.shift = false;
                 this.toggleShift();
               }
-              this.languageChange();
             });
             break;
 
@@ -288,17 +279,16 @@ const keyboard = {
             keyElement.textContent = keyValue;
             keyElement.addEventListener('click', () => {
               if (this.properties.capslock) {
-                this.properties.value += keyElement.textContent.toUpperCase();
+                textarea.value += keyElement.textContent.toUpperCase();
               } else if (this.properties.shift) {
-                this.properties.value += keyElement.textContent.toUpperCase();
+                textarea.value += keyElement.textContent.toUpperCase();
               } else {
-                this.properties.value += keyElement.textContent.toLowerCase();
+                textarea.value += keyElement.textContent.toLowerCase();
               }
               if (this.properties.shift) {
                 this.properties.shift = false;
                 this.toggleShift();
               }
-              this.triggerEvent('oninput');
             });
             break;
         }
@@ -310,12 +300,6 @@ const keyboard = {
     });
 
     return fragment;
-  },
-
-  triggerEvent(handlerName) {
-    if (typeof this.eventHandlers[handlerName] == 'function') {
-      this.eventHandlers[handlerName](this.properties.value);
-    }
   },
 
   toggleCapsLock() {
@@ -353,6 +337,7 @@ const keyboard = {
 
   languageChange() {
     this.properties.isRus = !this.properties.isRus;
+    localStorage.removeItem('isRus');
     localStorage.setItem('isRus', this.properties.isRus);
     const flatKeys = keysLayout.reduce((acc, val) => acc.concat(val), []);
     for (const key of this.elements.keys) {
@@ -365,10 +350,15 @@ const keyboard = {
 };
 
 window.addEventListener('DOMContentLoaded', () => {
-  keyboard.initilize(currentValue => (document.querySelector('.text-field').value = currentValue));
+  keyboard.initilize();
 });
 window.addEventListener('keydown', e => {
-  document.querySelector(`[data-key="${e.code}"]`).classList.add('highlighted');
+  textarea.focus();
+  const keyobj = document.querySelector(`[data-key="${e.code}"]`);
+  if (keyobj) {
+    keyobj.classList.add('highlighted');
+  }
+
   if (e.code === 'ShiftLeft' || e.code === 'ControlLeft') {
     switchKey[e.code] = true;
   }
@@ -378,7 +368,10 @@ window.addEventListener('keydown', e => {
   }
 });
 window.addEventListener('keyup', e => {
-  document.querySelector(`[data-key="${e.code}"]`).classList.remove('highlighted');
+  const keyobj = document.querySelector(`[data-key="${e.code}"]`);
+  if (keyobj) {
+    keyobj.classList.remove('highlighted');
+  }
   if (e.code === 'ShiftLeft' || e.code === 'ControlLeft') {
     switchKey[e.code] = false;
   }
