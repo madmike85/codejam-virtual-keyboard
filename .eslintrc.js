@@ -1,1 +1,11 @@
-module.exports = { extends: 'airbnb-base' };
+module.exports = {
+  extends: 'airbnb-base',
+  env: {
+    browser: true,
+    es6: true,
+  },
+  globals: {
+    Atomics: 'readonly',
+    SharedArrayBuffer: 'readonly',
+  },
+};

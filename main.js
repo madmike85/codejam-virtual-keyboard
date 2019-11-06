@@ -470,6 +470,7 @@ const keyboard = {
     capslock: false,
     shift: false,
     isRus: localStorage.getItem('isRus'),
+    lastCaretPos: 0,
   },
 
   initilize() {
@@ -500,7 +501,7 @@ const keyboard = {
             keyElement.classList.add('backspace', 'dark');
             keyElement.innerHTML = '<i class="fas fa-backspace"></i>';
             keyElement.addEventListener('click', () => {
-              this.properties.value = this.properties.value.substring(0, this.properties.value.length - 1);
+              textarea.value = textarea.value.substring(0, textarea.value.length - 1);
               if (this.properties.shift) {
                 this.properties.shift = false;
                 this.toggleShift();
@@ -512,6 +513,7 @@ const keyboard = {
             keyElement.classList.add('double', 'dark');
             keyElement.innerHTML = '<i class="fas fa-angle-up"></i>';
             keyElement.addEventListener('click', () => {
+              textarea.focus();
               this.properties.shift = !this.properties.shift;
               this.toggleShift();
             });
@@ -530,11 +532,15 @@ const keyboard = {
             keyElement.classList.add('double', 'dark');
             keyElement.innerHTML = '<i class="fas fa-level-down-alt"></i>';
             keyElement.addEventListener('click', () => {
-              textarea.value += '\n';
+              this.setCaretPosition(this.properties.lastCaretPos);
+              const idx = this.getCaretPosition();
+              this.properties.lastCaretPos = idx + 1;
+              textarea.value = textarea.value.slice(0, idx) + '\n' + textarea.value.slice(idx);
               if (this.properties.shift) {
                 this.properties.shift = false;
                 this.toggleShift();
               }
+              this.setCaretPosition(this.properties.lastCaretPos);
             });
             break;
 
@@ -542,11 +548,14 @@ const keyboard = {
             keyElement.classList.add('tab', 'dark');
             keyElement.innerHTML = '<span>TAB</span>';
             keyElement.addEventListener('click', () => {
-              textarea.value += '   ';
+              const idx = this.getCaretPosition();
+              this.properties.lastCaretPos = idx + 4;
+              textarea.value = textarea.value.slice(0, idx) + '    ' + textarea.value.slice(idx);
               if (this.properties.shift) {
                 this.properties.shift = false;
                 this.toggleShift();
               }
+              this.setCaretPosition(this.properties.lastCaretPos);
             });
             break;
 
@@ -566,7 +575,8 @@ const keyboard = {
           case 'AltRight':
             keyElement.classList.add('dark');
             keyElement.innerHTML = '<span>Alt</span>';
-            keyElement.addEventListener('click', () => {
+            keyElement.addEventListener('click', (e) => {
+              e.preventDefault();
               if (this.properties.shift) {
                 this.properties.shift = false;
                 this.toggleShift();
@@ -577,11 +587,14 @@ const keyboard = {
           case 'Space':
             keyElement.classList.add('long');
             keyElement.addEventListener('click', () => {
-              textarea.value += ' ';
+              const idx = this.getCaretPosition();
+              this.properties.lastCaretPos = idx + 1;
+              textarea.value = textarea.value.slice(0, idx) + ' ' + textarea.value.slice(idx);
               if (this.properties.shift) {
                 this.properties.shift = false;
                 this.toggleShift();
               }
+              this.setCaretPosition(this.properties.lastCaretPos);
             });
             break;
 
@@ -604,6 +617,12 @@ const keyboard = {
                 this.properties.shift = false;
                 this.toggleShift();
               }
+              const lineBreakIdx = textarea.value.indexOf('\n', -this.getCaretPosition());
+              const caretIndex = lineBreakIdx - Math.abs(lineBreakIdx - this.getCaretPosition());
+              console.log(lineBreakIdx);
+              console.log(this.getCaretPosition());
+              console.log(caretIndex);
+              this.setCaretPosition(caretIndex);
             });
             break;
 
@@ -615,6 +634,7 @@ const keyboard = {
                 this.properties.shift = false;
                 this.toggleShift();
               }
+              this.setCaretPosition(this.getCaretPosition() - 1);
             });
             break;
 
@@ -626,6 +646,12 @@ const keyboard = {
                 this.properties.shift = false;
                 this.toggleShift();
               }
+              const lineBreakIdx = textarea.value.indexOf('\n', this.getCaretPosition());
+              const caretIndex = lineBreakIdx + Math.abs(lineBreakIdx - this.getCaretPosition());
+              console.log(lineBreakIdx);
+              console.log(this.getCaretPosition());
+              console.log(caretIndex);
+              this.setCaretPosition(caretIndex);
             });
             break;
 
@@ -633,10 +659,12 @@ const keyboard = {
             keyElement.classList.add('dark');
             keyElement.innerHTML = '<i class="fas fa-arrow-right"></i>';
             keyElement.addEventListener('click', () => {
+              textarea.focus();
               if (this.properties.shift) {
                 this.properties.shift = false;
                 this.toggleShift();
               }
+              this.setCaretPosition(this.getCaretPosition() + 1);
             });
             break;
 
@@ -644,6 +672,7 @@ const keyboard = {
             keyElement.classList.add('double', 'dark');
             keyElement.innerHTML = '<span>CapsLock</span>';
             keyElement.addEventListener('click', () => {
+              textarea.focus();
               this.toggleCapsLock();
               if (this.properties.shift) {
                 this.properties.shift = false;
@@ -656,17 +685,18 @@ const keyboard = {
             const keyValue = this.properties.isRus ? key.value2.toLowerCase() : key.value1.toLowerCase();
             keyElement.textContent = keyValue;
             keyElement.addEventListener('click', () => {
-              if (this.properties.capslock) {
-                textarea.value += keyElement.textContent.toUpperCase();
-              } else if (this.properties.shift) {
-                textarea.value += keyElement.textContent.toUpperCase();
+              const idx = this.getCaretPosition();
+              this.properties.lastCaretPos = idx + 1;
+              if (this.properties.capslock || this.properties.shift) {
+                textarea.value = textarea.value.slice(0, idx) + keyElement.textContent.toUpperCase() + textarea.value.slice(idx);
               } else {
-                textarea.value += keyElement.textContent.toLowerCase();
+                textarea.value = textarea.value.slice(0, idx) + keyElement.textContent.toLowerCase() + textarea.value.slice(idx);
               }
               if (this.properties.shift) {
                 this.properties.shift = false;
                 this.toggleShift();
               }
+              this.setCaretPosition(this.properties.lastCaretPos);
             });
             break;
         }
@@ -716,7 +746,6 @@ const keyboard = {
     localStorage.removeItem('isRus');
     localStorage.setItem('isRus', this.properties.isRus);
     const flatKeys = keysLayout.reduce((acc, val) => acc.concat(val), []);
-    // for (const key of this.elements.keys) {
     this.elements.keys.forEach((key) => {
       if (key.childElementCount === 0) {
         const idx = flatKeys.findIndex((el) => el.code === key.dataset.key);
@@ -724,13 +753,22 @@ const keyboard = {
       }
     });
   },
+
+  getCaretPosition() {
+    return textarea.selectionStart;
+  },
+
+  setCaretPosition(position) {
+    textarea.focus();
+    textarea.setSelectionRange(position, position);
+  },
 };
 
 window.addEventListener('DOMContentLoaded', () => {
   keyboard.initilize();
 });
+
 window.addEventListener('keydown', (e) => {
-  textarea.focus();
   const keyobj = document.querySelector(`[data-key="${e.code}"]`);
   if (keyobj) {
     keyobj.classList.add('highlighted');
@@ -744,6 +782,7 @@ window.addEventListener('keydown', (e) => {
     keyboard.languageChange();
   }
 });
+
 window.addEventListener('keyup', (e) => {
   const keyobj = document.querySelector(`[data-key="${e.code}"]`);
   if (keyobj) {
@@ -756,3 +795,8 @@ window.addEventListener('keyup', (e) => {
     keyboard.toggleCapsLock();
   }
 });
+
+// textarea.addEventListener('focus', (e) => {
+//   e.preventDefault();
+//   keyboard.setCaretPosition(keyboard.properties.lastCaretPos);
+// });
