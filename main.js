@@ -469,7 +469,7 @@ const keyboard = {
     value: '',
     capslock: false,
     shift: false,
-    isRus: localStorage.getItem('isRus'),
+    lang: localStorage.getItem('lang') || 'eng',
     lastCaretPos: 0,
   },
 
@@ -532,10 +532,9 @@ const keyboard = {
             keyElement.classList.add('double', 'dark');
             keyElement.innerHTML = '<i class="fas fa-level-down-alt"></i>';
             keyElement.addEventListener('click', () => {
-              this.setCaretPosition(this.properties.lastCaretPos);
               const idx = this.getCaretPosition();
               this.properties.lastCaretPos = idx + 1;
-              textarea.value = textarea.value.slice(0, idx) + '\n' + textarea.value.slice(idx);
+              textarea.value = `${textarea.value.slice(0, idx)}\n${textarea.value.slice(idx)}`;
               if (this.properties.shift) {
                 this.properties.shift = false;
                 this.toggleShift();
@@ -550,7 +549,7 @@ const keyboard = {
             keyElement.addEventListener('click', () => {
               const idx = this.getCaretPosition();
               this.properties.lastCaretPos = idx + 4;
-              textarea.value = textarea.value.slice(0, idx) + '    ' + textarea.value.slice(idx);
+              textarea.value = `${textarea.value.slice(0, idx)}    ${textarea.value.slice(idx)}`;
               if (this.properties.shift) {
                 this.properties.shift = false;
                 this.toggleShift();
@@ -589,7 +588,7 @@ const keyboard = {
             keyElement.addEventListener('click', () => {
               const idx = this.getCaretPosition();
               this.properties.lastCaretPos = idx + 1;
-              textarea.value = textarea.value.slice(0, idx) + ' ' + textarea.value.slice(idx);
+              textarea.value = `${textarea.value.slice(0, idx)} ${textarea.value.slice(idx)}`;
               if (this.properties.shift) {
                 this.properties.shift = false;
                 this.toggleShift();
@@ -619,9 +618,6 @@ const keyboard = {
               }
               const lineBreakIdx = textarea.value.indexOf('\n', -this.getCaretPosition());
               const caretIndex = lineBreakIdx - Math.abs(lineBreakIdx - this.getCaretPosition());
-              console.log(lineBreakIdx);
-              console.log(this.getCaretPosition());
-              console.log(caretIndex);
               this.setCaretPosition(caretIndex);
             });
             break;
@@ -648,9 +644,6 @@ const keyboard = {
               }
               const lineBreakIdx = textarea.value.indexOf('\n', this.getCaretPosition());
               const caretIndex = lineBreakIdx + Math.abs(lineBreakIdx - this.getCaretPosition());
-              console.log(lineBreakIdx);
-              console.log(this.getCaretPosition());
-              console.log(caretIndex);
               this.setCaretPosition(caretIndex);
             });
             break;
@@ -682,7 +675,7 @@ const keyboard = {
             break;
 
           default:
-            const keyValue = this.properties.isRus ? key.value2.toLowerCase() : key.value1.toLowerCase();
+            const keyValue = this.properties.lang === 'rus' ? key.value2.toLowerCase() : key.value1.toLowerCase();
             keyElement.textContent = keyValue;
             keyElement.addEventListener('click', () => {
               const idx = this.getCaretPosition();
@@ -725,7 +718,7 @@ const keyboard = {
     this.elements.keys.forEach((key) => {
       if (key.childElementCount === 0) {
         const idx = flatKeys.findIndex((el) => el.code === key.dataset.key);
-        if (this.properties.isRus) {
+        if (this.properties.lang === 'rus') {
           if (this.properties.shift) {
             key.textContent = flatKeys[idx].alt2 ? flatKeys[idx].alt2 : key.textContent.toUpperCase();
           } else {
@@ -743,13 +736,16 @@ const keyboard = {
 
   languageChange() {
     this.properties.isRus = !this.properties.isRus;
+    if (this.properties.lang === 'rus') this.properties.lang = 'eng';
+    else this.properties.lang = 'rus';
     localStorage.removeItem('isRus');
     localStorage.setItem('isRus', this.properties.isRus);
+    localStorage.setItem('lang', this.properties.lang);
     const flatKeys = keysLayout.reduce((acc, val) => acc.concat(val), []);
     this.elements.keys.forEach((key) => {
       if (key.childElementCount === 0) {
         const idx = flatKeys.findIndex((el) => el.code === key.dataset.key);
-        key.textContent = this.properties.isRus ? flatKeys[idx].value2.toLowerCase() : flatKeys[idx].value1.toLowerCase();
+        key.textContent = this.properties.lang === 'rus' ? flatKeys[idx].value2.toLowerCase() : flatKeys[idx].value1.toLowerCase();
       }
     });
   },
@@ -795,8 +791,3 @@ window.addEventListener('keyup', (e) => {
     keyboard.toggleCapsLock();
   }
 });
-
-// textarea.addEventListener('focus', (e) => {
-//   e.preventDefault();
-//   keyboard.setCaretPosition(keyboard.properties.lastCaretPos);
-// });
