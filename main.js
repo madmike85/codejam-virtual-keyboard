@@ -1,4 +1,12 @@
-const textarea = document.querySelector('.text-field');
+let textarea;
+
+function generateInput() {
+  textarea = document.createElement('textarea');
+  textarea.classList.add('text-field');
+  textarea.setAttribute('cols', '100');
+  textarea.setAttribute('rows', '10');
+  document.body.appendChild(textarea);
+}
 
 const switchKey = {
   ShiftLeft: false,
@@ -761,6 +769,7 @@ const keyboard = {
 };
 
 window.addEventListener('DOMContentLoaded', () => {
+  generateInput();
   keyboard.initilize();
 });
 
